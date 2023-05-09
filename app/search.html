@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>App > Sök</h1>
+
+    <div class="search-active">
+        <br>
+        <input id="keyword" type="text" />
+        <br>
+        <button id="search">Sök</button>
+    </div>
+
+    <ul id="searchResults">
+    </ul>
+
+    <div class="update-inactive">
+        <input id="bookId" type="hidden" name="bookId" />
+
+        <label for="author">Author</label>
+        <input id="author" type="text" name="author" autofocus />
+
+        <label for="title">Title</label>
+        <input id="title" type="text" name="title" />
+
+        <label for="genre">Genre</label>
+        <input id="genre" type="text" name="genre" />
+
+        <label for="year">Year</label>
+        <input id="year" type="text" name="year" />
+
+        <br>
+
+        <button id="btnUpdate" type="submit">Spara</button>
+        <br>
+
+        <button id="btnDelete" class="button-delete" type="submit">Radera</button>
+    </div>
+ 
+
+    <script>
+        
+        const btnSearch = document.querySelector('#search');
+        const btnUpdate = document.querySelector('#btnUpdate');
+        const btnDelete = document.querySelector('#btnDelete');
+
+        btnSearch.addEventListener('click', () => {
+            printResults();
+        });
+
+        async function printResults() {
+            const ul = document.querySelector('#searchResults');
+            ul.innerHTML = '';
+
+            let data = await getResultsByKeyword();
+            console.log('First book data:', data[0]);
+
+            console.log('Data received from API:', data); 
+            for (const book of data) {
+                let li = document.createElement('li');
+                let a = document.createElement('a');
+
+                a.setAttribute('data-id', book.id);
+                a.innerText = `${book.author} - ${book.title} - ${book.genre} - ${book.year} - Available Copies: ${book.available_copies} - Loaned Copies: ${book.loaned_copies}`;
+                a.addEventListener('click', () => {
+                    ul.innerHTML = '';
+
+                    setCurrentBook(a.getAttribute('data-id'), book.author, book.title, book.genre, book.year);
+                    displayUpdate();
+                })
+
+                li.appendChild(a);
+                ul.appendChild(li);
+            }
+        }
+
+        function setCurrentBook(bookId, author, title, genre, year) {
+            console.log('Setting current book with data:', { bookId, author, title, genre, year }); // Add this line to debug
+
+            document.querySelector('#bookId').value = bookId;
+            document.querySelector('#author').value = author;
+            document.querySelector('#title').value = title;
+            document.querySelector('#genre').value = genre;
+            document.querySelector('#year').value = year;
+            // You don't need to set available_copies and loaned_copies in the input fields
+        }
+
+        function displayUpdate() {
+    var search = document.querySelector('.search-active');
+    if (search !== null) {
+        search.classList.remove('search-active');
+        search.classList.add('search-inactive');
+    }
+
+    var update = document.querySelector('.update-inactive');
+    if (update !== null) {
+        update.classList.remove('update-inactive');
+        update.classList.add('update-active');
+    }
+}
+
+        async function getResultsByKeyword() {
+            let keyword = document.querySelector('#keyword').value;
+
+            const options = {
+    method: 'GET',
+    headers: {
+        'Accept': 'application/json'
+    }
+}
+
+let response = await fetch('http://localhost:3001/customer/search?' + new URLSearchParams({
+    keyword: keyword
+}), options)
+.catch(error => {
+    console.error(error);
+});
+
+let data = await response.json();
+console.log(data)
+return data;
+};
+
+btnUpdate.addEventListener('click', async () => {
+    let bookId = document.querySelector('#bookId');
+    let author = document.querySelector('#author');
+    let title = document.querySelector('#title');
+    let genre = document.querySelector('#genre');
+    let year = document.querySelector('#year');
+
+    const options = {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: bookId.value, author: author.value, title: title.value, genre: genre.value, year: year.value })
+    }
+
+    await fetch(`http://localhost:3001/customer/books/${bookId.value}`, options)
+    .catch(error => {
+        console.error(error);
+    });
+
+    // Refresh the search results
+    printResults();
+});
+
+btnDelete.addEventListener('click', async () => {
+    let bookId = document.querySelector('#bookId');
+
+    const options = {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }
+
+    await fetch(`http://localhost:3001/customer/books/remove/${bookId.value}`, options)
+    .catch(error => {
+        console.error(error);
+    });
+
+    // Refresh the search results and hide the update form
+    printResults();
+    var update = document.querySelector('.update-active');
+    update.className = 'update-inactive';
+});
+</script>
+</body>
+</html>

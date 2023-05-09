@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App - Start</title>
+    <link rel="stylesheet" href="/styles.css"> <!-- HÄMTA CSS-fil -->
+</head>
+<body>
+    <h1>App > Create</h1>
+    <form id="addBookForm">
+        <label for="author">Author:</label>
+        <input type="text" id="authorAdd" name="author">
+        <br>
+        <label for="title">Title:</label>
+        <input type="text" id="titleAdd" name="title">
+        <br>
+        <label for="genre">Genre:</label>
+        <input type="text" id="genreAdd" name="genre">
+        <br>
+        <label for="year">Year:</label>
+        <input type="text" id="yearAdd" name="year">
+        <br>
+        <button type="submit">Add Book</button>
+      </form>
+    </body>
+    </html>
+      <script>
+        const addBookForm = document.querySelector('#addBookForm');
+
+        addBookForm.addEventListener('submit', async (e) => {
+e.preventDefault();
+
+const author = document.querySelector('#authorAdd').value.trim();
+const title = document.querySelector('#titleAdd').value.trim();
+const genre = document.querySelector('#genreAdd').value.trim();
+const year = document.querySelector('#yearAdd').value.trim();
+
+if (!author || !title || !genre || !year) {
+ alert('Please fill in all fields.');
+ return;
+}
+
+// The rest of the code remains the same
+const options = {
+ method: 'POST',
+ headers: {
+   'Content-Type': 'application/json'
+ },
+ body: JSON.stringify({ author, title, genre, year })
+}
+
+await fetch('http://localhost:3001/customer/add', options)
+.catch(error => {
+ console.error(error);
+});
+
+// Clear the form fields
+document.querySelector('#authorAdd').value = '';
+document.querySelector('#titleAdd').value = '';
+document.querySelector('#genreAdd').value = '';
+document.querySelector('#yearAdd').value = '';
+
+// Refresh the search results to show the new book
+printResults();
+});
+</script>    
